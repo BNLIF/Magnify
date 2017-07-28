@@ -136,14 +136,18 @@ void Data::load_threshold(const char* name)
         // throw runtime_error(msg.c_str());
         obj = new TH1I(name, "", 4000,0,4000);
     }
-    thresh_hist_t* hist = dynamic_cast<thresh_hist_t*>(obj);
-    if (!hist) {
-        string msg = "Threshold histogram is the wrong type: ";
-        msg += name;
-        throw runtime_error(msg.c_str());
+    TH1* basehist = dynamic_cast<TH1*>(obj);
+    if (basehist->InheritsFrom("TH1F")  || basehist->InheritsFrom("TH1I")) {
+        // Threshold is expected to be in units of electrons.  WCT
+        // saves them as TH1F, WCT as TH1I.
+        thresh_histos.push_back( (TH1I*)basehist );
+        return;
     }
+        
+    string msg = "Threshold histogram must be a TH1F or TH1I: ";
+    msg += name;
+    throw runtime_error(msg.c_str());
 
-    thresh_histos.push_back( hist );
 }
 
 Data::~Data()
